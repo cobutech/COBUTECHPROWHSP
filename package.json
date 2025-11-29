@@ -2,7 +2,7 @@
   "name": "𝑃𝑂𝑊𝐸𝑅𝐹𝑂𝐶𝐸-𝑀𝐷-𝑉1.5.5",
   "version": "1.5.5",
   "description": "",
-  "main": "tech.js",
+  "main": "home.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
