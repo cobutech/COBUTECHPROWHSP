@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>COBU-TECH | Session Manager</title>
+    <link rel="stylesheet" href="cobutechno.css">
+    <style>
+        /* Base styles from original */
+        .step-section { display: none; text-align: center; }
+        .step-section.active { display: block; }
+        .code-display { 
+            font-size: 2em; 
+            letter-spacing: 5px; 
+            font-weight: bold; 
+            color: #25D366; 
+            background: #eee; 
+            padding: 10px; 
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        .qr-image { max-width: 250px; margin: 20px auto; display: block; }
+        .method-btn {
+            display: inline-block; width: 45%; padding: 15px; margin: 5px;
+            background: #075E54; color: white; border-radius: 8px; cursor: pointer;
+            border: none;
+        }
+        .method-btn:hover { background: #128C7E; }
+
+        /* --- ✨ NEW EFFECTS CSS START --- */
+
+        /* Plasma Rainbow Effect for Inputs */
+        @keyframes plasma-rainbow {
+            0% { border-color: #ff0000; box-shadow: 0 0 5px #ff0000; }
+            16% { border-color: #ff7f00; box-shadow: 0 0 5px #ff7f00; }
+            33% { border-color: #ffff00; box-shadow: 0 0 5px #ffff00; }
+            50% { border-color: #00ff00; box-shadow: 0 0 5px #00ff00; }
+            66% { border-color: #0000ff; box-shadow: 0 0 5px #0000ff; }
+            83% { border-color: #4b0082; box-shadow: 0 0 5px #4b0082; }
+            100% { border-color: #9400d3; box-shadow: 0 0 5px #9400d3; }
+        }
+
+        input[type="text"] {
+            border: 2px solid;
+            animation: plasma-rainbow 4s linear infinite;
+            padding: 10px;
+            border-radius: 4px;
+            /* Ensure input is wide enough to see the effect */
+            width: 80%;
+            box-sizing: border-box;
+            transition: all 0.3s ease-in-out;
+        }
+
+        /* Goldish Glowing Effect for Submission Buttons */
+        @keyframes gold-glow {
+            0% { box-shadow: 0 0 5px #ffd700, 0 0 10px #ffd700; }
+            50% { box-shadow: 0 0 10px #ffcc00, 0 0 20px #ffcc00; }
+            100% { box-shadow: 0 0 5px #ffd700, 0 0 10px #ffd700; }
+        }
+
+        button, .method-btn {
+            /* Inherit method-btn styles for primary buttons */
+            background: #075E54; color: white; border-radius: 8px; cursor: pointer;
+            border: none;
+            padding: 15px 30px;
+            margin: 10px 0;
+            font-size: 1em;
+            font-weight: bold;
+            transition: all 0.3s ease-in-out;
+        }
+
+        /* Apply glow to primary action buttons */
+        #step-name button, #step-phone button {
+            background: #FFD700; /* Gold color */
+            color: #000;
+            animation: gold-glow 2s ease-in-out infinite;
+        }
+
+        #step-name button:hover, #step-phone button:hover {
+            background: #ffec85;
+            box-shadow: 0 0 15px #fff3b8, 0 0 25px #ffec85;
+        }
+
+        /* Custom Modal Styles */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.7); display: none; justify-content: center;
+            align-items: center; z-index: 1000;
+        }
+        .modal-content {
+            background: #fff; padding: 30px; border-radius: 10px;
+            text-align: center; max-width: 400px; width: 90%;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+        .modal-content h3 { color: #075E54; }
+        .modal-content .close-btn {
+            padding: 10px 20px; background: #075E54; color: white;
+            border: none; border-radius: 5px; cursor: pointer; margin-top: 15px;
+        }
+        /* --- ✨ NEW EFFECTS CSS END --- */
+    </style>
+</head>
+<body>
+
+    <div id="app-container">
+        <header>
+            <h1>🤖 COBU-TECH CONNECTION</h1>
+        </header>
+        <div id="content-area">
+            
+            <div id="step-name" class="step-section active">
+                <h2>Start Session</h2>
+                <p>Enter a unique name for your session (e.g., 'MainBot').</p>
+                <input type="text" id="session-name-input" placeholder="Session Name">
+                <button onclick="checkSession()">Next</button>
+            </div>
+
+            <div id="step-method" class="step-section">
+                <h2>Authentication Method</h2>
+                <p>How would you like to connect?</p>
+                <div style="display:flex; justify-content:space-between;">
+                    <div class="method-btn" onclick="selectMethod('qr')">
+                        <h3>Scan QR Code</h3>
+                    </div>
+                    <div class="method-btn" onclick="selectMethod('pairing')">
+                        <h3>Pairing Code</h3>
+                    </div>
+                </div>
+            </div>
+
+            <div id="step-phone" class="step-section">
+                <h2>Enter Phone Number</h2>
+                <p>Enter your WhatsApp number with country code (e.g., 254...)</p>
+                <input type="text" id="phone-input" placeholder="254700000000">
+                <button onclick="startPairing()">Get Code</button>
+            </div>
+
+            <div id="step-display" class="step-section">
+                <h2 id="display-title">Connecting...</h2>
+                <div id="display-area"></div>
+                <p id="display-status">Waiting for server...</p>
+                <div class="loader" style="margin: 10px auto;"></div>
+            </div>
+
+        </div>
+    </div>
+
+    <div id="success-modal" class="modal-overlay">
+        <div class="modal-content">
+            <h3>✅ Connection Successful!</h3>
+            <p>You are now connected to the COBU-TECH Session Manager.</p>
+            <button class="close-btn" onclick="redirectToCobu()">Continue</button>
+        </div>
+    </div>
+    
+    <script>
+        let currentSessionName = '';
+        let pollingInterval = null;
+
+        // Function to handle redirection
+        function redirectToCobu() {
+            // Changed from index.html to cobu.html
+            window.location.href = 'cobu.html'; 
+        }
+
+        async function checkSession() {
+            const name = document.getElementById('session-name-input').value.trim();
+            if(!name) return alert('Enter a session name');
+            
+            currentSessionName = name;
+            
+            // Check status
+            const res = await fetch('/api/check-session', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ sessionName: name })
+            });
+            const data = await res.json();
+
+            if (data.status === 'active') {
+                // Active? Go to setup
+                redirectToCobu(); 
+            } else if (data.status === 'reconnecting') {
+                // Reconnecting? Wait for it
+                showStep('step-display');
+                document.getElementById('display-title').innerText = 'Reconnecting...';
+                startPolling();
+            } else {
+                // New? Choose method
+                showStep('step-method');
+            }
+        }
+
+        function selectMethod(method) {
+            if (method === 'pairing') {
+                showStep('step-phone');
+            } else {
+                // Start QR flow
+                initSession('qr', null);
+                showStep('step-display');
+                document.getElementById('display-title').innerText = 'Scan QR Code';
+            }
+        }
+
+        async function startPairing() {
+            const phone = document.getElementById('phone-input').value.trim();
+            if (!phone) return alert('Enter phone number');
+            
+            await initSession('pairing', phone);
+            showStep('step-display');
+            document.getElementById('display-title').innerText = 'Pairing Code';
+        }
+
+        async function initSession(method, phoneNumber) {
+            await fetch('/api/init-session', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ 
+                    sessionName: currentSessionName, 
+                    method, 
+                    phoneNumber 
+                })
+            });
+            startPolling();
+        }
+
+        // Function to show the custom modal
+        function showSuccessModal() {
+            const modal = document.getElementById('success-modal');
+            modal.style.display = 'flex'; // Show modal
+        }
+
+        function startPolling() {
+            if(pollingInterval) clearInterval(pollingInterval);
+            
+            pollingInterval = setInterval(async () => {
+                const res = await fetch(`/api/session-poll?sessionName=${currentSessionName}`);
+                const data = await res.json();
+
+                const displayArea = document.getElementById('display-area');
+                const statusTxt = document.getElementById('display-status');
+
+                if (data.status === 'connected') {
+                    clearInterval(pollingInterval);
+                    // Replaced alert with custom modal
+                    showSuccessModal(); 
+                } else if (data.status === 'pending') {
+                    if (data.code) {
+                        displayArea.innerHTML = `<div class="code-display">${data.code}</div>`;
+                        statusTxt.innerText = "Enter this code on WhatsApp > Linked Devices";
+                    } else if (data.qr) {
+                        displayArea.innerHTML = `<img src="${data.qr}" class="qr-image" />`;
+                        statusTxt.innerText = "Scan this code with WhatsApp";
+                    } else {
+                        statusTxt.innerText = data.message || "Loading...";
+                        displayArea.innerHTML = '';
+                    }
+                }
+            }, 2000);
+        }
+
+        function showStep(id) {
+            document.querySelectorAll('.step-section').forEach(el => el.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+        }
+    </script>
+</body>
+</html>
