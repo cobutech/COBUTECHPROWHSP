@@ -1,6 +1,7 @@
 document.addEventListener('DOMContentLoaded', () => {
     const contentArea = document.getElementById('content-area');
 
+    // Initial load: Render the number verification form
     renderVerificationForm();
 
     function renderVerificationForm() {
@@ -9,7 +10,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <p>Enter the WhatsApp number used to pair the bot to finish up the setting.</p>
             <form id="verification-form">
                 <input type="text" id="whatsapp-number" name="number" placeholder="Enter Your WhatsApp Number" required>
-                <button type="submit">𝑽𝑬𝑹𝑰𝑭𝒀</I></button>
+                <button type="submit">𝑽𝑬𝑹𝑰𝑭𝒀</button>
             </form>
             <p id="message" class="error"></p>
         `;
@@ -82,6 +83,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // --- FULL SETTINGS RENDERER ---
     function renderSettings(number, botName, botVersion, userName, existingSettings) {
         
         const isSelected = (settingName, value) => {
@@ -102,12 +104,12 @@ document.addEventListener('DOMContentLoaded', () => {
             <form id="settings-form">
                 
                 <div class="setting-group">
-                    <label>𝑷𝒓𝒆𝒇𝒊𝒙</label>
-                    <input type="text" name="prefix" id="prefix-input" value="${currentPrefix}" placeholder="Enter Prefix (e.g., !, #)">
+                    <label>Command Prefix (Default is '.')</label>
+                    <input type="text" name="prefix" id="prefix-input" value="${currentPrefix}" placeholder="Enter Prefix (e.g., !, #, or .)">
                 </div>
 
                 <div class="setting-group">
-                    <label>𝑨𝒍𝒘𝒂𝒚𝒔 𝑶𝒏𝒍𝒊𝒏𝒆 𝑺𝒕𝒂𝒕𝒖𝒔</label>
+                    <label>Always Online Status</label>
                     <div class="option-buttons" data-setting-name="alwaysOnline">
                         <button type="button" class="option-btn ${isSelected('always_online', 'true')}" data-value="true" data-name="alwaysOnline">True</button>
                         <button type="button" class="option-btn ${isSelected('always_online', 'false')}" data-value="false" data-name="alwaysOnline">False</button>
@@ -115,7 +117,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
                 
                 <div class="setting-group">
-                    <label>𝑨𝒖𝒕𝒐 𝑹𝒆𝒂𝒅 𝑴𝒆𝒔𝒔𝒂𝒈𝒆𝒔</label>
+                    <label>Auto Read Messages</label>
                     <div class="option-buttons" data-setting-name="autoread">
                         <button type="button" class="option-btn ${isSelected('autoread', 'true')}" data-value="true" data-name="autoread">True</button>
                         <button type="button" class="option-btn ${isSelected('autoread', 'false')}" data-value="false" data-name="autoread">False</button>
@@ -123,7 +125,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
 
                 <div class="setting-group">
-                    <label>𝑨𝒖𝒕𝒐 𝑽𝒊𝒆𝒘 𝑺𝒕𝒂𝒕𝒖𝒔</label>
+                    <label>Auto View Status</label>
                     <div class="option-buttons" data-setting-name="autoviewstatus">
                         <button type="button" class="option-btn ${isSelected('autoviewstatus', 'true')}" data-value="true" data-name="autoviewstatus">True</button>
                         <button type="button" class="option-btn ${isSelected('autoviewstatus', 'false')}" data-value="false" data-name="autoviewstatus">False</button>
@@ -131,7 +133,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
                 
                 <div class="setting-group presence-group">
-                    <label>𝑨𝒖𝒕𝒐 𝑹𝒆𝒄𝒐𝒓𝒅𝒊𝒏𝒈𝒕𝒚𝒑𝒊𝒏𝒈</label>
+                    <label>Auto Recording/Typing (Combined)</label>
                     <div class="option-buttons" data-setting-name="autorecordingtyping">
                         <button type="button" class="option-btn ${isSelected('autorecordingtyping', 'true')}" data-value="true" data-name="autorecordingtyping">True</button>
                         <button type="button" class="option-btn ${isSelected('autorecordingtyping', 'false')}" data-value="false" data-name="autorecordingtyping">False</button>
@@ -139,7 +141,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
 
                 <div class="setting-group presence-group">
-                    <label>𝑨𝒖𝒕𝒐 𝑻𝒚𝒑𝒊𝒏𝒈</label>
+                    <label>Auto Typing Action (Individual)</label>
                     <div class="option-buttons" data-setting-name="autoTyping">
                         <button type="button" class="option-btn ${isSelected('auto_typing', 'true')}" data-value="true" data-name="autoTyping">True</button>
                         <button type="button" class="option-btn ${isSelected('auto_typing', 'false')}" data-value="false" data-name="autoTyping">False</button>
@@ -147,7 +149,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
 
                 <div class="setting-group presence-group">
-                    <label>𝑨𝒖𝒕𝒐 𝑹𝒆𝒄𝒐𝒓𝒅𝒊𝒏𝒈</label>
+                    <label>Auto Recording Action (Individual)</label>
                     <div class="option-buttons" data-setting-name="autoRecording">
                         <button type="button" class="option-btn ${isSelected('auto_recording', 'true')}" data-value="true" data-name="autoRecording">True</button>
                         <button type="button" class="option-btn ${isSelected('auto_recording', 'false')}" data-value="false" data-name="autoRecording">False</button>
@@ -155,7 +157,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
 
                 <div class="setting-group">
-                    <label>𝑨𝒏𝒕𝒊 𝑫𝒆𝒍𝒆𝒕𝒆 𝑭𝒆𝒂𝒕𝒖𝒓𝒆</label>
+                    <label>Anti Delete Feature</label>
                     <div class="option-buttons" data-setting-name="antiDelete">
                         <button type="button" class="option-btn ${isSelected('anti_delete', 'true')}" data-value="true" data-name="antiDelete">True</button>
                         <button type="button" class="option-btn ${isSelected('anti_delete', 'false')}" data-value="false" data-name="antiDelete">False</button>
@@ -163,10 +165,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
 
                 <div class="setting-group">
-                    <label>𝑴𝒐𝒅𝒆</label>
+                    <label>Mode</label>
                     <div class="option-buttons" data-setting-name="mode">
-                        <button type="button" class="option-btn ${isSelected('mode', '𝒑𝒖𝒃𝒍𝒊𝒄)}" data-value="public" data-name="mode">Public</button>
-                        <button type="button" class="option-btn ${isSelected('mode', '𝒑𝒓𝒊𝒗𝒂𝒕𝒆)}" data-value="private" data-name="mode">Private</button>
+                        <button type="button" class="option-btn ${isSelected('mode', 'public')}" data-value="public" data-name="mode">Public</button>
+                        <button type="button" class="option-btn ${isSelected('mode', 'private')}" data-value="private" data-name="mode">Private</button>
                     </div>
                 </div>
                 
@@ -195,15 +197,18 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('settings-form').addEventListener('submit', handleSubmitSettings);
     }
     
+    // Mutual Exclusion Logic
     function handleOptionClick(event) {
         const button = event.currentTarget;
         const group = button.closest('.option-buttons');
         const settingName = button.dataset.name;
         const value = button.dataset.value;
 
+        // Visual selection
         group.querySelectorAll('.option-btn').forEach(btn => btn.classList.remove('selected'));
         button.classList.add('selected');
 
+        // Logic: Only one presence type allowed
         const presenceSettings = ['autorecordingtyping', 'autoTyping', 'autoRecording'];
         
         if (presenceSettings.includes(settingName) && value === 'true') {
