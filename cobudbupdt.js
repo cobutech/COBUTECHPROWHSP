@@ -31,7 +31,8 @@ const initializeDatabase = async () => {
             version TEXT NOT NULL,
             developer_name TEXT,
             developer_number TEXT,
-            channel_link TEXT
+            channel_link TEXT,
+            status TEXT DEFAULT 'completed'
         );
     `;
 
@@ -39,6 +40,7 @@ const initializeDatabase = async () => {
         await db.query(createCobutechTableQuery);
         await db.query(createBotsTableQuery);
     } catch (error) {
+        console.error("DB Init Error:", error);
     }
 };
 
@@ -113,9 +115,31 @@ const getBotSettingsByJid = async (whatsappNumber) => {
     }
 };
 
+const getBotConfig = async (whatsappNumber) => {
+    const query = `
+        SELECT bot_name, bot_version FROM cobutech WHERE whatsapp_number = $1;
+    `;
+    try {
+        const result = await db.query(query, [whatsappNumber]);
+        return result.rows.length > 0 ? result.rows[0] : null;
+    } catch (error) {
+        return null;
+    }
+};
+
+const deleteSessionBySessionId = async (sessionId) => {
+    const query = `
+        DELETE FROM cobutech WHERE session_id = $1;
+    `;
+    try {
+        await db.query(query, [sessionId]);
+    } catch (error) {
+    }
+};
+
 const getAvailableBots = async () => {
     const query = `
-        SELECT name, version FROM bots;
+        SELECT name, version FROM bots WHERE status = 'completed';
     `;
     try {
         const result = await db.query(query);
@@ -172,6 +196,8 @@ module.exports = {
     checkUserStatus,
     getUserSettings,
     getBotSettingsByJid,
+    getBotConfig,
+    deleteSessionBySessionId,
     getAvailableBots,
     updateUserSettings,
     getDeveloperContact
