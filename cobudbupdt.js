@@ -16,15 +16,13 @@ const initializeDatabase = async () => {
             auto_typing BOOLEAN DEFAULT FALSE,
             auto_recording BOOLEAN DEFAULT FALSE,
             mode TEXT DEFAULT 'public',
-            prefix TEXT DEFAULT '.',
+            prefix TEXT DEFAULT '',
             sudo_numbers TEXT DEFAULT '',
             anti_delete BOOLEAN DEFAULT FALSE,
             always_online BOOLEAN DEFAULT FALSE,
             last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );
     `;
-
-    // Updated: Added status column
     const createBotsTableQuery = `
         CREATE TABLE IF NOT EXISTS bots (
             id SERIAL PRIMARY KEY,
@@ -36,17 +34,27 @@ const initializeDatabase = async () => {
             status TEXT DEFAULT 'completed'
         );
     `;
+    const createTechTableQuery = `
+        CREATE TABLE IF NOT EXISTS tech (
+            whatsapp_number TEXT PRIMARY KEY,
+            bot_name TEXT,
+            bot_version TEXT,
+            bot_active BOOLEAN DEFAULT true,
+            mute_unknown BOOLEAN DEFAULT false,
+            anticall_active BOOLEAN DEFAULT false,
+            autoreply_active BOOLEAN DEFAULT false,
+            last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
+    `;
 
     try {
         await db.query(createCobutechTableQuery);
         await db.query(createBotsTableQuery);
+        await db.query(createTechTableQuery);
     } catch (error) {
         console.error("DB Init Error:", error);
     }
 };
-
-// ... [Keep storeUserData, markSessionOffline, checkIfOnline, checkUserStatus, getUserSettings, getBotSettingsByJid exactly as they were] ...
-
 const storeUserData = async (whatsappNumber, whatsappName, sessionId) => {
     const query = `
         INSERT INTO cobutech (whatsapp_number, whatsapp_name, session_online, session_id)
@@ -54,121 +62,79 @@ const storeUserData = async (whatsappNumber, whatsappName, sessionId) => {
         ON CONFLICT (whatsapp_number) DO UPDATE
         SET whatsapp_name = $2, session_online = TRUE, session_id = $3, last_updated = CURRENT_TIMESTAMP;
     `;
-    try {
-        await db.query(query, [whatsappNumber, whatsappName, sessionId]);
-    } catch (error) {
-    }
+    try { await db.query(query, [whatsappNumber, whatsappName, sessionId]); } catch {}
 };
 
 const markSessionOffline = async (whatsappNumber) => {
-    const query = `
-        UPDATE cobutech SET session_online = FALSE, last_updated = CURRENT_TIMESTAMP WHERE whatsapp_number = $1;
-    `;
-    try {
-        await db.query(query, [whatsappNumber]);
-    } catch (error) {
-    }
+    const query = `UPDATE cobutech SET session_online = FALSE, last_updated = CURRENT_TIMESTAMP WHERE whatsapp_number = $1;`;
+    try { await db.query(query, [whatsappNumber]); } catch {}
 };
 
 const checkIfOnline = async (whatsappNumber) => {
-    const query = `
-        SELECT session_online FROM cobutech WHERE whatsapp_number = $1;
-    `;
-    try {
-        const result = await db.query(query, [whatsappNumber]);
-        return result.rows.length > 0 ? result.rows[0].session_online : false;
-    } catch (error) {
-        return false;
-    }
+    const result = await db.query('SELECT session_online FROM cobutech WHERE whatsapp_number = $1;', [whatsappNumber]);
+    return result.rows.length ? result.rows[0].session_online : false;
 };
 
 const checkUserStatus = async (whatsappNumber) => {
-    const query = `
-        SELECT * FROM cobutech WHERE whatsapp_number = $1;
-    `;
-    try {
-        const result = await db.query(query, [whatsappNumber]);
-        return result.rows.length > 0 ? result.rows[0] : null;
-    } catch (error) {
-        return null;
-    }
+    const result = await db.query('SELECT * FROM cobutech WHERE whatsapp_number = $1;', [whatsappNumber]);
+    return result.rows.length ? result.rows[0] : null;
 };
 
 const getUserSettings = async (whatsappNumber) => {
-    const query = `
-        SELECT autoread, autoviewstatus, autorecordingtyping, auto_typing, auto_recording, anti_delete, always_online, mode, prefix, sudo_numbers FROM cobutech WHERE whatsapp_number = $1;
-    `;
-    try {
-        const result = await db.query(query, [whatsappNumber]);
-        return result.rows.length > 0 ? result.rows[0] : null;
-    } catch (error) {
-        return null;
-    }
+    const result = await db.query(`
+        SELECT autoread, autoviewstatus, autorecordingtyping, auto_typing, auto_recording,
+               anti_delete, always_online, mode, prefix, sudo_numbers
+        FROM cobutech WHERE whatsapp_number = $1;
+    `, [whatsappNumber]);
+    return result.rows.length ? result.rows[0] : null;
 };
 
 const getBotSettingsByJid = async (whatsappNumber) => {
-    const query = `
-        SELECT autoread, autoviewstatus, autorecordingtyping, auto_typing, auto_recording, anti_delete, always_online, mode, prefix, sudo_numbers FROM cobutech WHERE whatsapp_number = $1;
-    `;
-    try {
-        const result = await db.query(query, [whatsappNumber]);
-        return result.rows.length > 0 ? result.rows[0] : null;
-    } catch (error) {
-        return null;
-    }
+    const result = await db.query(`
+        SELECT autoread, autoviewstatus, autorecordingtyping, auto_typing, auto_recording,
+               anti_delete, always_online, mode, prefix, sudo_numbers
+        FROM cobutech WHERE whatsapp_number = $1;
+    `, [whatsappNumber]);
+    return result.rows.length ? result.rows[0] : null;
 };
 
-// Updated: Filter by status='completed'
 const getAvailableBots = async () => {
-    const query = `
-        SELECT name, version FROM bots WHERE status = 'completed';
-    `;
-    try {
-        const result = await db.query(query);
-        return result.rows;
-    } catch (error) {
-        return [];
-    }
+    const result = await db.query(`SELECT name, version FROM bots WHERE status = 'completed';`);
+    return result.rows;
 };
 
-// ... [Keep getDeveloperContact, updateUserSettings as they were] ...
 const getDeveloperContact = async () => {
-    const query = `
-        SELECT developer_name, developer_number, channel_link FROM bots LIMIT 1;
-    `;
-    try {
-        const result = await db.query(query);
-        return result.rows.length > 0 ? result.rows[0] : { developer_name: 'Unknown', developer_number: 'N/A', channel_link: 'N/A' };
-    } catch (error) {
-        return { developer_name: 'Unknown', developer_number: 'N/A', channel_link: 'N/A' };
-    }
+    const result = await db.query(`SELECT developer_name, developer_number, channel_link FROM bots LIMIT 1;`);
+    return result.rows.length ? result.rows[0] : { developer_name: 'Unknown', developer_number: 'N/A', channel_link: 'N/A' };
 };
 
-const updateUserSettings = async (whatsappNumber, botName, botVersion, autoread, autoviewstatus, autorecordingtyping, autoTyping, autoRecording, antiDelete, alwaysOnline, mode, prefix, sudoNumbers) => {
+const updateUserSettings = async (whatsappNumber, botName, botVersion, autoread, autoviewstatus, autorecordingtyping,
+                                  autoTyping, autoRecording, antiDelete, alwaysOnline, mode, prefix, sudoNumbers) => {
     const query = `
         UPDATE cobutech
-        SET bot_name = $2, bot_version = $3, autoread = $4, autoviewstatus = $5, autorecordingtyping = $6, auto_typing = $7, auto_recording = $8,
-            anti_delete = $9, always_online = $10, mode = $11, prefix = $12, sudo_numbers = $13, last_updated = CURRENT_TIMESTAMP
+        SET bot_name = $2, bot_version = $3, autoread = $4, autoviewstatus = $5, autorecordingtyping = $6,
+            auto_typing = $7, auto_recording = $8, anti_delete = $9, always_online = $10, mode = $11,
+            prefix = $12, sudo_numbers = $13, last_updated = CURRENT_TIMESTAMP
         WHERE whatsapp_number = $1;
     `;
     try {
-        await db.query(query, [
-            whatsappNumber,
-            botName,
-            botVersion,
-            autoread,
-            autoviewstatus,
-            autorecordingtyping,
-            autoTyping,
-            autoRecording,
-            antiDelete,
-            alwaysOnline,
-            mode,
-            prefix,
-            sudoNumbers
-        ]);
-    } catch (error) {
-    }
+        await db.query(query, [whatsappNumber, botName, botVersion, autoread, autoviewstatus, autorecordingtyping,
+                               autoTyping, autoRecording, antiDelete, alwaysOnline, mode, prefix, sudoNumbers]);
+    } catch {}
+};
+const getTechSettings = async (whatsappNumber) => {
+    const r = await db.query('SELECT * FROM tech WHERE whatsapp_number = $1;', [whatsappNumber]);
+    return r.rows.length ? r.rows[0] : null;
+};
+
+const updateTechSettings = async (whatsappNumber, fields) => {
+    const keys   = Object.keys(fields);
+    const set    = keys.map((k, i) => `${k} = $${i + 2}`).join(', ');
+    const vals   = Object.values(fields);
+    const sql = `INSERT INTO tech (whatsapp_number, ${keys.join(', ')})
+                 VALUES ($1, ${vals.map((_, i) => `$${i + 2}`).join(', ')})
+                 ON CONFLICT (whatsapp_number) DO UPDATE SET ${set}, last_updated = CURRENT_TIMESTAMP;`;
+    await db.query(sql, [whatsappNumber, ...vals]);
 };
 
 module.exports = {
@@ -181,5 +147,8 @@ module.exports = {
     getBotSettingsByJid,
     getAvailableBots,
     updateUserSettings,
-    getDeveloperContact
+    getDeveloperContact,
+    // NEW
+    getTechSettings,
+    updateTechSettings
 };
