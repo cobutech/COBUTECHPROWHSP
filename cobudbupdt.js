@@ -8,6 +8,7 @@ const initializeDatabase = async () => {
             whatsapp_name TEXT,
             session_online BOOLEAN DEFAULT FALSE,
             session_id TEXT,
+            session_data TEXT,
             bot_name TEXT,
             bot_version TEXT,
             autoread BOOLEAN DEFAULT FALSE,
@@ -55,6 +56,7 @@ const initializeDatabase = async () => {
         console.error("DB Init Error:", error);
     }
 };
+
 const storeUserData = async (whatsappNumber, whatsappName, sessionId) => {
     const query = `
         INSERT INTO cobutech (whatsapp_number, whatsapp_name, session_online, session_id)
@@ -122,6 +124,7 @@ const updateUserSettings = async (whatsappNumber, botName, botVersion, autoread,
                                autoTyping, autoRecording, antiDelete, alwaysOnline, mode, prefix, sudoNumbers]);
     } catch {}
 };
+
 const getTechSettings = async (whatsappNumber) => {
     const r = await db.query('SELECT * FROM tech WHERE whatsapp_number = $1;', [whatsappNumber]);
     return r.rows.length ? r.rows[0] : null;
@@ -137,6 +140,20 @@ const updateTechSettings = async (whatsappNumber, fields) => {
     await db.query(sql, [whatsappNumber, ...vals]);
 };
 
+const saveSessionDataToDB = async (whatsappNumber, sessionJsonData) => {
+    const query = `
+        UPDATE cobutech 
+        SET session_data = $2, last_updated = CURRENT_TIMESTAMP 
+        WHERE whatsapp_number = $1;
+    `;
+    try { await db.query(query, [whatsappNumber, sessionJsonData]); } catch (e) { console.error("Save Creds Error", e); }
+};
+
+const getSessionDataFromDB = async (whatsappNumber) => {
+    const result = await db.query('SELECT session_data FROM cobutech WHERE whatsapp_number = $1;', [whatsappNumber]);
+    return result.rows.length && result.rows[0].session_data ? result.rows[0].session_data : null;
+};
+
 module.exports = {
     initializeDatabase,
     storeUserData,
@@ -148,7 +165,8 @@ module.exports = {
     getAvailableBots,
     updateUserSettings,
     getDeveloperContact,
-    // NEW
     getTechSettings,
-    updateTechSettings
+    updateTechSettings,
+    saveSessionDataToDB,
+    getSessionDataFromDB
 };
